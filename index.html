@@ -2,60 +2,1712 @@
 <html lang="fr">
 
 <head>
+
     <meta charset="UTF-8">
 
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
 
-    <title>Ma cartographie</title>
+    <title>GeoMap | Cartographie interactive</title>
 
-    <!-- Leaflet CSS -->
+    <!-- =====================================================
+         LEAFLET
+    ====================================================== -->
+
     <link
         rel="stylesheet"
         href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
     >
 
-    <style>
-
-        html,
-        body {
-            height: 100%;
-            margin: 0;
-        }
-
-        #map {
-            width: 100%;
-            height: 100%;
-        }
-
-    </style>
-</head>
-
-<body>
-
-    <div id="map"></div>
-
-    <!-- Leaflet JavaScript -->
     <script
         src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js">
     </script>
 
-    <script>
 
-        // Création de la carte
-        const map = L.map('map').setView(
-            [31.63, -8.00],
-            12
+    <!-- =====================================================
+         STYLE
+    ====================================================== -->
+
+    <style>
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            font-family: Arial, Helvetica, sans-serif;
+            overflow: hidden;
+            background: #eef1f4;
+        }
+
+
+        /* =====================================================
+           APPLICATION
+        ====================================================== */
+
+        #app {
+            width: 100%;
+            height: 100%;
+            position: relative;
+        }
+
+
+        /* =====================================================
+           BARRE SUPÉRIEURE
+        ====================================================== */
+
+        #topbar {
+
+            position: absolute;
+
+            top: 0;
+            left: 0;
+            right: 0;
+
+            height: 64px;
+
+            background: rgba(255, 255, 255, 0.97);
+
+            z-index: 1000;
+
+            display: flex;
+            align-items: center;
+
+            padding: 0 22px;
+
+            box-shadow:
+                0 2px 12px rgba(0, 0, 0, 0.12);
+        }
+
+
+        .logo {
+
+            display: flex;
+            align-items: center;
+
+            gap: 10px;
+
+            font-size: 20px;
+            font-weight: bold;
+
+            color: #263238;
+
+            min-width: 240px;
+        }
+
+
+        .logo-icon {
+
+            width: 38px;
+            height: 38px;
+
+            border-radius: 10px;
+
+            background: #34495e;
+
+            color: white;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            font-size: 20px;
+        }
+
+
+        .logo span {
+            color: #3498db;
+        }
+
+
+        /* =====================================================
+           RECHERCHE
+        ====================================================== */
+
+        .search-container {
+
+            flex: 1;
+
+            max-width: 550px;
+
+            position: relative;
+        }
+
+
+        #search {
+
+            width: 100%;
+
+            height: 40px;
+
+            border: 1px solid #d5dbe0;
+
+            border-radius: 20px;
+
+            padding: 0 45px 0 18px;
+
+            font-size: 14px;
+
+            outline: none;
+
+            background: #f7f9fa;
+
+            transition: 0.2s;
+        }
+
+
+        #search:focus {
+
+            background: white;
+
+            border-color: #3498db;
+
+            box-shadow:
+                0 0 0 3px rgba(52, 152, 219, 0.12);
+        }
+
+
+        #search-button {
+
+            position: absolute;
+
+            right: 5px;
+            top: 5px;
+
+            width: 30px;
+            height: 30px;
+
+            border: none;
+
+            border-radius: 50%;
+
+            background: #3498db;
+
+            color: white;
+
+            cursor: pointer;
+        }
+
+
+        /* =====================================================
+           BOUTONS DU HAUT
+        ====================================================== */
+
+        .top-actions {
+
+            margin-left: auto;
+
+            display: flex;
+
+            gap: 8px;
+        }
+
+
+        .top-button {
+
+            width: 38px;
+            height: 38px;
+
+            border: 1px solid #dce1e5;
+
+            border-radius: 9px;
+
+            background: white;
+
+            cursor: pointer;
+
+            font-size: 17px;
+
+            transition: 0.2s;
+        }
+
+
+        .top-button:hover {
+
+            background: #3498db;
+
+            color: white;
+
+            border-color: #3498db;
+        }
+
+
+        /* =====================================================
+           PANNEAU LATÉRAL
+        ====================================================== */
+
+        #sidebar {
+
+            position: absolute;
+
+            top: 64px;
+            left: 0;
+            bottom: 0;
+
+            width: 290px;
+
+            background: rgba(255,255,255,0.98);
+
+            z-index: 900;
+
+            box-shadow:
+                2px 0 12px rgba(0,0,0,0.10);
+
+            overflow-y: auto;
+
+            transition: 0.3s;
+        }
+
+
+        .sidebar-header {
+
+            padding: 20px 20px 10px;
+
+            font-size: 18px;
+
+            font-weight: bold;
+
+            color: #263238;
+        }
+
+
+        .sidebar-subtitle {
+
+            padding: 0 20px 15px;
+
+            font-size: 12px;
+
+            color: #7f8c8d;
+        }
+
+
+        .section {
+
+            border-top: 1px solid #edf0f2;
+
+            padding: 17px 20px;
+        }
+
+
+        .section-title {
+
+            font-size: 11px;
+
+            font-weight: bold;
+
+            letter-spacing: 1px;
+
+            color: #7f8c8d;
+
+            margin-bottom: 12px;
+        }
+
+
+        /* =====================================================
+           COUCHES
+        ====================================================== */
+
+        .layer-row {
+
+            display: flex;
+
+            align-items: center;
+
+            gap: 10px;
+
+            padding: 9px 0;
+
+            cursor: pointer;
+
+            font-size: 14px;
+
+            color: #34495e;
+        }
+
+
+        .layer-row input {
+
+            width: 16px;
+            height: 16px;
+
+            accent-color: #3498db;
+
+            cursor: pointer;
+        }
+
+
+        .layer-symbol {
+
+            width: 20px;
+            height: 4px;
+
+            border-radius: 2px;
+
+            background: #e74c3c;
+        }
+
+
+        .layer-symbol.point {
+
+            width: 12px;
+            height: 12px;
+
+            border-radius: 50%;
+
+            background: #3498db;
+        }
+
+
+        .layer-symbol.area {
+
+            width: 15px;
+            height: 15px;
+
+            background: rgba(46, 204, 113, 0.4);
+
+            border: 2px solid #2ecc71;
+        }
+
+
+        /* =====================================================
+           FONDS CARTOGRAPHIQUES
+        ====================================================== */
+
+        .basemap-button {
+
+            width: 100%;
+
+            padding: 10px;
+
+            margin-bottom: 7px;
+
+            border: 1px solid #dfe4e7;
+
+            border-radius: 8px;
+
+            background: #f8f9fa;
+
+            cursor: pointer;
+
+            text-align: left;
+
+            color: #34495e;
+
+            transition: 0.2s;
+        }
+
+
+        .basemap-button:hover {
+
+            border-color: #3498db;
+
+            background: #edf7fd;
+        }
+
+
+        .basemap-button.active {
+
+            background: #3498db;
+
+            border-color: #3498db;
+
+            color: white;
+        }
+
+
+        /* =====================================================
+           LÉGENDE
+        ====================================================== */
+
+        .legend-item {
+
+            display: flex;
+
+            align-items: center;
+
+            gap: 10px;
+
+            font-size: 13px;
+
+            margin: 10px 0;
+
+            color: #455a64;
+        }
+
+
+        .legend-line {
+
+            width: 25px;
+
+            height: 4px;
+
+            background: #e74c3c;
+        }
+
+
+        .legend-point {
+
+            width: 12px;
+            height: 12px;
+
+            background: #3498db;
+
+            border-radius: 50%;
+        }
+
+
+        .legend-area {
+
+            width: 18px;
+            height: 14px;
+
+            background: rgba(46,204,113,0.35);
+
+            border: 2px solid #2ecc71;
+        }
+
+
+        /* =====================================================
+           STATISTIQUES
+        ====================================================== */
+
+        .stats {
+
+            display: grid;
+
+            grid-template-columns: 1fr 1fr;
+
+            gap: 8px;
+        }
+
+
+        .stat {
+
+            background: #f5f7f8;
+
+            border-radius: 8px;
+
+            padding: 10px;
+
+            text-align: center;
+        }
+
+
+        .stat-number {
+
+            font-size: 19px;
+
+            font-weight: bold;
+
+            color: #3498db;
+        }
+
+
+        .stat-label {
+
+            font-size: 10px;
+
+            color: #7f8c8d;
+
+            margin-top: 3px;
+        }
+
+
+        /* =====================================================
+           CARTE
+        ====================================================== */
+
+        #map {
+
+            position: absolute;
+
+            top: 64px;
+            left: 290px;
+            right: 0;
+            bottom: 32px;
+
+            z-index: 1;
+        }
+
+
+        /* =====================================================
+           BARRE INFÉRIEURE
+        ====================================================== */
+
+        #statusbar {
+
+            position: absolute;
+
+            left: 290px;
+            right: 0;
+            bottom: 0;
+
+            height: 32px;
+
+            background: rgba(255,255,255,0.96);
+
+            z-index: 1000;
+
+            display: flex;
+
+            align-items: center;
+
+            justify-content: space-between;
+
+            padding: 0 15px;
+
+            font-size: 11px;
+
+            color: #607d8b;
+
+            box-shadow:
+                0 -2px 8px rgba(0,0,0,0.08);
+        }
+
+
+        /* =====================================================
+           BOUTONS DE CARTE
+        ====================================================== */
+
+        .map-tools {
+
+            position: absolute;
+
+            right: 15px;
+            top: 80px;
+
+            z-index: 500;
+
+            display: flex;
+
+            flex-direction: column;
+
+            gap: 7px;
+        }
+
+
+        .map-tool {
+
+            width: 40px;
+            height: 40px;
+
+            border: none;
+
+            border-radius: 8px;
+
+            background: white;
+
+            box-shadow:
+                0 2px 8px rgba(0,0,0,0.20);
+
+            cursor: pointer;
+
+            font-size: 17px;
+
+            color: #455a64;
+        }
+
+
+        .map-tool:hover {
+
+            background: #3498db;
+
+            color: white;
+        }
+
+
+        /* =====================================================
+           RESPONSIVE
+        ====================================================== */
+
+        @media (max-width: 800px) {
+
+            #sidebar {
+
+                width: 240px;
+            }
+
+            #map {
+
+                left: 240px;
+            }
+
+            #statusbar {
+
+                left: 240px;
+            }
+
+            .logo {
+
+                min-width: auto;
+            }
+
+            .logo-text {
+
+                display: none;
+            }
+
+            .search-container {
+
+                margin-left: 10px;
+            }
+        }
+
+
+        @media (max-width: 600px) {
+
+            #sidebar {
+
+                width: 0;
+
+                overflow: hidden;
+            }
+
+            #map {
+
+                left: 0;
+            }
+
+            #statusbar {
+
+                left: 0;
+            }
+
+            .logo {
+
+                display: none;
+            }
+
+            .search-container {
+
+                margin-left: 0;
+            }
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+<div id="app">
+
+
+    <!-- =====================================================
+         BARRE SUPÉRIEURE
+    ====================================================== -->
+
+    <header id="topbar">
+
+        <div class="logo">
+
+            <div class="logo-icon">
+                ◈
+            </div>
+
+            <div class="logo-text">
+                GEO<span>MAP</span>
+            </div>
+
+        </div>
+
+
+        <div class="search-container">
+
+            <input
+                type="text"
+                id="search"
+                placeholder="Rechercher un lieu..."
+            >
+
+            <button id="search-button">
+                🔍
+            </button>
+
+        </div>
+
+
+        <div class="top-actions">
+
+            <button
+                class="top-button"
+                title="Panneau"
+                onclick="toggleSidebar()">
+                ☰
+            </button>
+
+            <button
+                class="top-button"
+                title="Plein écran"
+                onclick="toggleFullscreen()">
+                ⛶
+            </button>
+
+        </div>
+
+    </header>
+
+
+    <!-- =====================================================
+         PANNEAU LATÉRAL
+    ====================================================== -->
+
+    <aside id="sidebar">
+
+        <div class="sidebar-header">
+            Cartographie
+        </div>
+
+        <div class="sidebar-subtitle">
+            Interface géographique interactive
+        </div>
+
+
+        <!-- COUCHES -->
+
+        <div class="section">
+
+            <div class="section-title">
+                COUCHES
+            </div>
+
+
+            <label class="layer-row">
+
+                <input
+                    type="checkbox"
+                    id="routesCheck"
+                    checked
+                >
+
+                <div class="layer-symbol"></div>
+
+                Routes
+
+            </label>
+
+
+            <label class="layer-row">
+
+                <input
+                    type="checkbox"
+                    id="pointsCheck"
+                    checked
+                >
+
+                <div class="layer-symbol point"></div>
+
+                Points d'intérêt
+
+            </label>
+
+
+            <label class="layer-row">
+
+                <input
+                    type="checkbox"
+                    id="zoneCheck"
+                    checked
+                >
+
+                <div class="layer-symbol area"></div>
+
+                Zone d'étude
+
+            </label>
+
+        </div>
+
+
+        <!-- FONDS -->
+
+        <div class="section">
+
+            <div class="section-title">
+                FOND CARTOGRAPHIQUE
+            </div>
+
+
+            <button
+                class="basemap-button active"
+                onclick="changeBase('standard', this)">
+                🗺️ Standard
+            </button>
+
+
+            <button
+                class="basemap-button"
+                onclick="changeBase('dark', this)">
+                🌙 Sombre
+            </button>
+
+
+            <button
+                class="basemap-button"
+                onclick="changeBase('satellite', this)">
+                🛰️ Satellite
+            </button>
+
+        </div>
+
+
+        <!-- LÉGENDE -->
+
+        <div class="section">
+
+            <div class="section-title">
+                LÉGENDE
+            </div>
+
+
+            <div class="legend-item">
+
+                <div class="legend-line"></div>
+
+                Route
+
+            </div>
+
+
+            <div class="legend-item">
+
+                <div class="legend-point"></div>
+
+                Point d'intérêt
+
+            </div>
+
+
+            <div class="legend-item">
+
+                <div class="legend-area"></div>
+
+                Zone d'étude
+
+            </div>
+
+        </div>
+
+
+        <!-- STATISTIQUES -->
+
+        <div class="section">
+
+            <div class="section-title">
+                INFORMATIONS
+            </div>
+
+
+            <div class="stats">
+
+                <div class="stat">
+
+                    <div class="stat-number">
+                        3
+                    </div>
+
+                    <div class="stat-label">
+                        COUCHES
+                    </div>
+
+                </div>
+
+
+                <div class="stat">
+
+                    <div class="stat-number">
+                        12
+                    </div>
+
+                    <div class="stat-label">
+                        OBJETS
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </aside>
+
+
+    <!-- =====================================================
+         CARTE
+    ====================================================== -->
+
+    <div id="map"></div>
+
+
+    <!-- =====================================================
+         OUTILS
+    ====================================================== -->
+
+    <div class="map-tools">
+
+        <button
+            class="map-tool"
+            title="Retour à la vue initiale"
+            onclick="resetView()">
+            🏠
+        </button>
+
+
+        <button
+            class="map-tool"
+            title="Ma position"
+            onclick="locateUser()">
+            📍
+        </button>
+
+
+        <button
+            class="map-tool"
+            title="Zoom avant"
+            onclick="map.zoomIn()">
+            +
+        </button>
+
+
+        <button
+            class="map-tool"
+            title="Zoom arrière"
+            onclick="map.zoomOut()">
+            −
+        </button>
+
+    </div>
+
+
+    <!-- =====================================================
+         BARRE INFÉRIEURE
+    ====================================================== -->
+
+    <footer id="statusbar">
+
+        <span id="coordinates">
+            Coordonnées : —
+        </span>
+
+        <span>
+            © OpenStreetMap | GeoMap
+        </span>
+
+        <span>
+            Niveau de zoom : <b id="zoomLevel">12</b>
+        </span>
+
+    </footer>
+
+
+</div>
+
+
+<!-- =========================================================
+     JAVASCRIPT
+========================================================= -->
+
+<script>
+
+
+/* =========================================================
+   CONFIGURATION
+========================================================= */
+
+const initialCenter = [31.63, -8.00];
+
+const initialZoom = 12;
+
+
+/* =========================================================
+   CRÉATION DE LA CARTE
+========================================================= */
+
+const map = L.map('map', {
+
+    zoomControl: true,
+
+    attributionControl: true
+
+}).setView(
+    initialCenter,
+    initialZoom
+);
+
+
+/* =========================================================
+   FONDS CARTOGRAPHIQUES
+========================================================= */
+
+const standard = L.tileLayer(
+
+    'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+
+    {
+        attribution:
+        '&copy; OpenStreetMap contributors',
+
+        maxZoom: 19
+    }
+
+).addTo(map);
+
+
+const dark = L.tileLayer(
+
+    'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
+
+    {
+        attribution:
+        '&copy; OpenStreetMap &copy; CARTO',
+
+        maxZoom: 20
+    }
+
+);
+
+
+const satellite = L.tileLayer(
+
+    'https://server.arcgisonline.com/ArcGIS/rest/services/' +
+    'World_Imagery/MapServer/tile/{z}/{y}/{x}',
+
+    {
+        attribution:
+        'Tiles &copy; Esri',
+
+        maxZoom: 19
+    }
+
+);
+
+
+/* =========================================================
+   COUCHES DE DÉMONSTRATION
+========================================================= */
+
+
+/* ROUTES */
+
+const routesLayer = L.layerGroup();
+
+
+const route1 = L.polyline(
+
+    [
+        [31.635, -8.015],
+        [31.630, -8.005],
+        [31.625, -7.995],
+        [31.620, -7.985]
+    ],
+
+    {
+        color: '#e74c3c',
+
+        weight: 5,
+
+        opacity: 0.9
+    }
+
+).bindPopup(
+    '<b>Route principale</b><br>Type : principale'
+);
+
+
+const route2 = L.polyline(
+
+    [
+        [31.640, -8.020],
+        [31.638, -8.005],
+        [31.635, -7.990]
+    ],
+
+    {
+        color: '#f39c12',
+
+        weight: 3,
+
+        opacity: 0.9
+    }
+
+).bindPopup(
+    '<b>Route secondaire</b><br>Type : secondaire'
+);
+
+
+route1.addTo(routesLayer);
+
+route2.addTo(routesLayer);
+
+routesLayer.addTo(map);
+
+
+/* =========================================================
+   POINTS
+========================================================= */
+
+const pointsLayer = L.layerGroup();
+
+
+const point1 = L.circleMarker(
+
+    [31.630, -8.000],
+
+    {
+        radius: 9,
+
+        fillColor: '#3498db',
+
+        color: '#ffffff',
+
+        weight: 3,
+
+        fillOpacity: 1
+    }
+
+).bindPopup(
+    '<b>Point d'intérêt</b><br>' +
+    'Coordonnées : 31.630, -8.000'
+);
+
+
+const point2 = L.circleMarker(
+
+    [31.640, -8.010],
+
+    {
+        radius: 9,
+
+        fillColor: '#9b59b6',
+
+        color: '#ffffff',
+
+        weight: 3,
+
+        fillOpacity: 1
+    }
+
+).bindPopup(
+    '<b>Point topographique</b><br>' +
+    'Type : point de contrôle'
+);
+
+
+const point3 = L.circleMarker(
+
+    [31.620, -7.995],
+
+    {
+        radius: 9,
+
+        fillColor: '#1abc9c',
+
+        color: '#ffffff',
+
+        weight: 3,
+
+        fillOpacity: 1
+    }
+
+).bindPopup(
+    '<b>Point remarquable</b>'
+);
+
+
+point1.addTo(pointsLayer);
+
+point2.addTo(pointsLayer);
+
+point3.addTo(pointsLayer);
+
+pointsLayer.addTo(map);
+
+
+/* =========================================================
+   ZONE D'ÉTUDE
+========================================================= */
+
+const zoneLayer = L.layerGroup();
+
+
+const studyArea = L.polygon(
+
+    [
+        [31.645, -8.025],
+        [31.645, -7.980],
+        [31.615, -7.980],
+        [31.615, -8.025]
+    ],
+
+    {
+        color: '#2ecc71',
+
+        weight: 2,
+
+        fillColor: '#2ecc71',
+
+        fillOpacity: 0.10
+    }
+
+).bindPopup(
+    '<b>Zone d’étude</b><br>' +
+    'Zone cartographique'
+);
+
+
+studyArea.addTo(zoneLayer);
+
+zoneLayer.addTo(map);
+
+
+/* =========================================================
+   GESTION DES COUCHES
+========================================================= */
+
+document
+    .getElementById('routesCheck')
+    .addEventListener('change', function () {
+
+        if (this.checked) {
+
+            map.addLayer(routesLayer);
+
+        } else {
+
+            map.removeLayer(routesLayer);
+
+        }
+
+    });
+
+
+document
+    .getElementById('pointsCheck')
+    .addEventListener('change', function () {
+
+        if (this.checked) {
+
+            map.addLayer(pointsLayer);
+
+        } else {
+
+            map.removeLayer(pointsLayer);
+
+        }
+
+    });
+
+
+document
+    .getElementById('zoneCheck')
+    .addEventListener('change', function () {
+
+        if (this.checked) {
+
+            map.addLayer(zoneLayer);
+
+        } else {
+
+            map.removeLayer(zoneLayer);
+
+        }
+
+    });
+
+
+/* =========================================================
+   CHANGEMENT DE FOND
+========================================================= */
+
+function changeBase(type, button) {
+
+
+    map.removeLayer(standard);
+
+    map.removeLayer(dark);
+
+    map.removeLayer(satellite);
+
+
+    if (type === 'standard') {
+
+        standard.addTo(map);
+
+    }
+
+
+    if (type === 'dark') {
+
+        dark.addTo(map);
+
+    }
+
+
+    if (type === 'satellite') {
+
+        satellite.addTo(map);
+
+    }
+
+
+    document
+        .querySelectorAll('.basemap-button')
+        .forEach(function(btn) {
+
+            btn.classList.remove('active');
+
+        });
+
+
+    button.classList.add('active');
+
+}
+
+
+/* =========================================================
+   RETOUR À LA VUE INITIALE
+========================================================= */
+
+function resetView() {
+
+    map.flyTo(
+
+        initialCenter,
+
+        initialZoom,
+
+        {
+            duration: 1
+        }
+
+    );
+
+}
+
+
+/* =========================================================
+   GÉOLOCALISATION
+========================================================= */
+
+function locateUser() {
+
+
+    if (!navigator.geolocation) {
+
+        alert(
+            "La géolocalisation n'est pas disponible."
         );
 
-        // Fond OpenStreetMap
-        L.tileLayer(
-            'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-            {
-                attribution: '&copy; OpenStreetMap contributors'
-            }
-        ).addTo(map);
+        return;
 
-    </script>
+    }
+
+
+    navigator.geolocation.getCurrentPosition(
+
+        function(position) {
+
+
+            const lat =
+                position.coords.latitude;
+
+
+            const lon =
+                position.coords.longitude;
+
+
+            map.flyTo(
+
+                [lat, lon],
+
+                16,
+
+                {
+                    duration: 1
+                }
+
+            );
+
+
+            L.marker([lat, lon])
+
+                .addTo(map)
+
+                .bindPopup(
+                    '<b>Votre position</b><br>' +
+                    lat.toFixed(6) +
+                    ', ' +
+                    lon.toFixed(6)
+                )
+
+                .openPopup();
+
+        },
+
+
+        function() {
+
+            alert(
+                "Impossible d'obtenir votre position."
+            );
+
+        }
+
+    );
+
+}
+
+
+/* =========================================================
+   COORDONNÉES DE LA SOURIS
+========================================================= */
+
+map.on(
+
+    'mousemove',
+
+    function(e) {
+
+        document
+            .getElementById('coordinates')
+            .innerHTML =
+            'Coordonnées : ' +
+            e.latlng.lat.toFixed(5) +
+            ' , ' +
+            e.latlng.lng.toFixed(5);
+
+    }
+
+);
+
+
+/* =========================================================
+   NIVEAU DE ZOOM
+========================================================= */
+
+map.on(
+
+    'zoomend',
+
+    function() {
+
+        document
+            .getElementById('zoomLevel')
+            .innerText =
+            map.getZoom();
+
+    }
+
+);
+
+
+/* =========================================================
+   RECHERCHE
+========================================================= */
+
+async function searchLocation() {
+
+
+    const query =
+        document
+            .getElementById('search')
+            .value
+            .trim();
+
+
+    if (!query) {
+
+        return;
+
+    }
+
+
+    try {
+
+
+        const url =
+            'https://nominatim.openstreetmap.org/search' +
+            '?format=json' +
+            '&limit=1' +
+            '&q=' +
+            encodeURIComponent(query);
+
+
+        const response =
+            await fetch(url);
+
+
+        const data =
+            await response.json();
+
+
+        if (data.length === 0) {
+
+            alert(
+                'Aucun lieu trouvé.'
+            );
+
+            return;
+
+        }
+
+
+        const lat =
+            parseFloat(data[0].lat);
+
+
+        const lon =
+            parseFloat(data[0].lon);
+
+
+        map.flyTo(
+
+            [lat, lon],
+
+            15,
+
+            {
+                duration: 1.5
+            }
+
+        );
+
+
+        L.marker([lat, lon])
+
+            .addTo(map)
+
+            .bindPopup(
+                '<b>' +
+                data[0].display_name +
+                '</b>'
+            )
+
+            .openPopup();
+
+
+    } catch (error) {
+
+
+        alert(
+            'Erreur lors de la recherche.'
+        );
+
+    }
+
+}
+
+
+document
+    .getElementById('search-button')
+    .addEventListener(
+        'click',
+        searchLocation
+    );
+
+
+document
+    .getElementById('search')
+    .addEventListener(
+        'keydown',
+        function(event) {
+
+            if (event.key === 'Enter') {
+
+                searchLocation();
+
+            }
+
+        }
+    );
+
+
+/* =========================================================
+   PANNEAU LATÉRAL
+========================================================= */
+
+function toggleSidebar() {
+
+
+    const sidebar =
+        document.getElementById('sidebar');
+
+
+    const mapElement =
+        document.getElementById('map');
+
+
+    const statusbar =
+        document.getElementById('statusbar');
+
+
+    if (sidebar.style.width === '0px') {
+
+
+        sidebar.style.width = '290px';
+
+        mapElement.style.left = '290px';
+
+        statusbar.style.left = '290px';
+
+
+    } else {
+
+
+        sidebar.style.width = '0px';
+
+        mapElement.style.left = '0px';
+
+        statusbar.style.left = '0px';
+
+    }
+
+
+    setTimeout(
+
+        function() {
+
+            map.invalidateSize();
+
+        },
+
+        300
+
+    );
+
+}
+
+
+/* =========================================================
+   MODE PLEIN ÉCRAN
+========================================================= */
+
+function toggleFullscreen() {
+
+
+    if (!document.fullscreenElement) {
+
+        document
+            .documentElement
+            .requestFullscreen();
+
+    } else {
+
+        document.exitFullscreen();
+
+    }
+
+}
+
+
+</script>
+
 
 </body>
 
