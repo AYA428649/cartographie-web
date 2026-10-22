@@ -1,1714 +1,590 @@
 <!DOCTYPE html>
 <html lang="fr">
-
 <head>
-
-    <meta charset="UTF-8">
-
-    <meta name="viewport"
-          content="width=device-width, initial-scale=1.0">
-
-    <title>GeoMap | Cartographie interactive</title>
-
-    <!-- =====================================================
-         LEAFLET
-    ====================================================== -->
-
-    <link
-        rel="stylesheet"
-        href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-    >
-
-    <script
-        src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js">
-    </script>
-
-
-    <!-- =====================================================
-         STYLE
-    ====================================================== -->
-
-    <style>
-
-        * {
-            box-sizing: border-box;
-        }
-
-        html,
-        body {
-            margin: 0;
-            padding: 0;
-            width: 100%;
-            height: 100%;
-            font-family: Arial, Helvetica, sans-serif;
-            overflow: hidden;
-            background: #eef1f4;
-        }
-
-
-        /* =====================================================
-           APPLICATION
-        ====================================================== */
-
-        #app {
-            width: 100%;
-            height: 100%;
-            position: relative;
-        }
-
-
-        /* =====================================================
-           BARRE SUPÉRIEURE
-        ====================================================== */
-
-        #topbar {
-
-            position: absolute;
-
-            top: 0;
-            left: 0;
-            right: 0;
-
-            height: 64px;
-
-            background: rgba(255, 255, 255, 0.97);
-
-            z-index: 1000;
-
-            display: flex;
-            align-items: center;
-
-            padding: 0 22px;
-
-            box-shadow:
-                0 2px 12px rgba(0, 0, 0, 0.12);
-        }
-
-
-        .logo {
-
-            display: flex;
-            align-items: center;
-
-            gap: 10px;
-
-            font-size: 20px;
-            font-weight: bold;
-
-            color: #263238;
-
-            min-width: 240px;
-        }
-
-
-        .logo-icon {
-
-            width: 38px;
-            height: 38px;
-
-            border-radius: 10px;
-
-            background: #34495e;
-
-            color: white;
-
-            display: flex;
-            align-items: center;
-            justify-content: center;
-
-            font-size: 20px;
-        }
-
-
-        .logo span {
-            color: #3498db;
-        }
-
-
-        /* =====================================================
-           RECHERCHE
-        ====================================================== */
-
-        .search-container {
-
-            flex: 1;
-
-            max-width: 550px;
-
-            position: relative;
-        }
-
-
-        #search {
-
-            width: 100%;
-
-            height: 40px;
-
-            border: 1px solid #d5dbe0;
-
-            border-radius: 20px;
-
-            padding: 0 45px 0 18px;
-
-            font-size: 14px;
-
-            outline: none;
-
-            background: #f7f9fa;
-
-            transition: 0.2s;
-        }
-
-
-        #search:focus {
-
-            background: white;
-
-            border-color: #3498db;
-
-            box-shadow:
-                0 0 0 3px rgba(52, 152, 219, 0.12);
-        }
-
-
-        #search-button {
-
-            position: absolute;
-
-            right: 5px;
-            top: 5px;
-
-            width: 30px;
-            height: 30px;
-
-            border: none;
-
-            border-radius: 50%;
-
-            background: #3498db;
-
-            color: white;
-
-            cursor: pointer;
-        }
-
-
-        /* =====================================================
-           BOUTONS DU HAUT
-        ====================================================== */
-
-        .top-actions {
-
-            margin-left: auto;
-
-            display: flex;
-
-            gap: 8px;
-        }
-
-
-        .top-button {
-
-            width: 38px;
-            height: 38px;
-
-            border: 1px solid #dce1e5;
-
-            border-radius: 9px;
-
-            background: white;
-
-            cursor: pointer;
-
-            font-size: 17px;
-
-            transition: 0.2s;
-        }
-
-
-        .top-button:hover {
-
-            background: #3498db;
-
-            color: white;
-
-            border-color: #3498db;
-        }
-
-
-        /* =====================================================
-           PANNEAU LATÉRAL
-        ====================================================== */
-
-        #sidebar {
-
-            position: absolute;
-
-            top: 64px;
-            left: 0;
-            bottom: 0;
-
-            width: 290px;
-
-            background: rgba(255,255,255,0.98);
-
-            z-index: 900;
-
-            box-shadow:
-                2px 0 12px rgba(0,0,0,0.10);
-
-            overflow-y: auto;
-
-            transition: 0.3s;
-        }
-
-
-        .sidebar-header {
-
-            padding: 20px 20px 10px;
-
-            font-size: 18px;
-
-            font-weight: bold;
-
-            color: #263238;
-        }
-
-
-        .sidebar-subtitle {
-
-            padding: 0 20px 15px;
-
-            font-size: 12px;
-
-            color: #7f8c8d;
-        }
-
-
-        .section {
-
-            border-top: 1px solid #edf0f2;
-
-            padding: 17px 20px;
-        }
-
-
-        .section-title {
-
-            font-size: 11px;
-
-            font-weight: bold;
-
-            letter-spacing: 1px;
-
-            color: #7f8c8d;
-
-            margin-bottom: 12px;
-        }
-
-
-        /* =====================================================
-           COUCHES
-        ====================================================== */
-
-        .layer-row {
-
-            display: flex;
-
-            align-items: center;
-
-            gap: 10px;
-
-            padding: 9px 0;
-
-            cursor: pointer;
-
-            font-size: 14px;
-
-            color: #34495e;
-        }
-
-
-        .layer-row input {
-
-            width: 16px;
-            height: 16px;
-
-            accent-color: #3498db;
-
-            cursor: pointer;
-        }
-
-
-        .layer-symbol {
-
-            width: 20px;
-            height: 4px;
-
-            border-radius: 2px;
-
-            background: #e74c3c;
-        }
-
-
-        .layer-symbol.point {
-
-            width: 12px;
-            height: 12px;
-
-            border-radius: 50%;
-
-            background: #3498db;
-        }
-
-
-        .layer-symbol.area {
-
-            width: 15px;
-            height: 15px;
-
-            background: rgba(46, 204, 113, 0.4);
-
-            border: 2px solid #2ecc71;
-        }
-
-
-        /* =====================================================
-           FONDS CARTOGRAPHIQUES
-        ====================================================== */
-
-        .basemap-button {
-
-            width: 100%;
-
-            padding: 10px;
-
-            margin-bottom: 7px;
-
-            border: 1px solid #dfe4e7;
-
-            border-radius: 8px;
-
-            background: #f8f9fa;
-
-            cursor: pointer;
-
-            text-align: left;
-
-            color: #34495e;
-
-            transition: 0.2s;
-        }
-
-
-        .basemap-button:hover {
-
-            border-color: #3498db;
-
-            background: #edf7fd;
-        }
-
-
-        .basemap-button.active {
-
-            background: #3498db;
-
-            border-color: #3498db;
-
-            color: white;
-        }
-
-
-        /* =====================================================
-           LÉGENDE
-        ====================================================== */
-
-        .legend-item {
-
-            display: flex;
-
-            align-items: center;
-
-            gap: 10px;
-
-            font-size: 13px;
-
-            margin: 10px 0;
-
-            color: #455a64;
-        }
-
-
-        .legend-line {
-
-            width: 25px;
-
-            height: 4px;
-
-            background: #e74c3c;
-        }
-
-
-        .legend-point {
-
-            width: 12px;
-            height: 12px;
-
-            background: #3498db;
-
-            border-radius: 50%;
-        }
-
-
-        .legend-area {
-
-            width: 18px;
-            height: 14px;
-
-            background: rgba(46,204,113,0.35);
-
-            border: 2px solid #2ecc71;
-        }
-
-
-        /* =====================================================
-           STATISTIQUES
-        ====================================================== */
-
-        .stats {
-
-            display: grid;
-
-            grid-template-columns: 1fr 1fr;
-
-            gap: 8px;
-        }
-
-
-        .stat {
-
-            background: #f5f7f8;
-
-            border-radius: 8px;
-
-            padding: 10px;
-
-            text-align: center;
-        }
-
-
-        .stat-number {
-
-            font-size: 19px;
-
-            font-weight: bold;
-
-            color: #3498db;
-        }
-
-
-        .stat-label {
-
-            font-size: 10px;
-
-            color: #7f8c8d;
-
-            margin-top: 3px;
-        }
-
-
-        /* =====================================================
-           CARTE
-        ====================================================== */
-
-        #map {
-
-            position: absolute;
-
-            top: 64px;
-            left: 290px;
-            right: 0;
-            bottom: 32px;
-
-            z-index: 1;
-        }
-
-
-        /* =====================================================
-           BARRE INFÉRIEURE
-        ====================================================== */
-
-        #statusbar {
-
-            position: absolute;
-
-            left: 290px;
-            right: 0;
-            bottom: 0;
-
-            height: 32px;
-
-            background: rgba(255,255,255,0.96);
-
-            z-index: 1000;
-
-            display: flex;
-
-            align-items: center;
-
-            justify-content: space-between;
-
-            padding: 0 15px;
-
-            font-size: 11px;
-
-            color: #607d8b;
-
-            box-shadow:
-                0 -2px 8px rgba(0,0,0,0.08);
-        }
-
-
-        /* =====================================================
-           BOUTONS DE CARTE
-        ====================================================== */
-
-        .map-tools {
-
-            position: absolute;
-
-            right: 15px;
-            top: 80px;
-
-            z-index: 500;
-
-            display: flex;
-
-            flex-direction: column;
-
-            gap: 7px;
-        }
-
-
-        .map-tool {
-
-            width: 40px;
-            height: 40px;
-
-            border: none;
-
-            border-radius: 8px;
-
-            background: white;
-
-            box-shadow:
-                0 2px 8px rgba(0,0,0,0.20);
-
-            cursor: pointer;
-
-            font-size: 17px;
-
-            color: #455a64;
-        }
-
-
-        .map-tool:hover {
-
-            background: #3498db;
-
-            color: white;
-        }
-
-
-        /* =====================================================
-           RESPONSIVE
-        ====================================================== */
-
-        @media (max-width: 800px) {
-
-            #sidebar {
-
-                width: 240px;
-            }
-
-            #map {
-
-                left: 240px;
-            }
-
-            #statusbar {
-
-                left: 240px;
-            }
-
-            .logo {
-
-                min-width: auto;
-            }
-
-            .logo-text {
-
-                display: none;
-            }
-
-            .search-container {
-
-                margin-left: 10px;
-            }
-        }
-
-
-        @media (max-width: 600px) {
-
-            #sidebar {
-
-                width: 0;
-
-                overflow: hidden;
-            }
-
-            #map {
-
-                left: 0;
-            }
-
-            #statusbar {
-
-                left: 0;
-            }
-
-            .logo {
-
-                display: none;
-            }
-
-            .search-container {
-
-                margin-left: 0;
-            }
-        }
-
-    </style>
-
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GeoMap | Campus IAV Hassan II</title>
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<style>
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;width:100%;height:100%;font-family:Arial,Helvetica,sans-serif;overflow:hidden;background:#eef1f4}
+#app{width:100%;height:100%;position:relative}
+
+#topbar{position:absolute;top:0;left:0;right:0;height:64px;background:rgba(255,255,255,.97);z-index:1000;display:flex;align-items:center;padding:0 22px;box-shadow:0 2px 12px rgba(0,0,0,.12)}
+.logo{display:flex;align-items:center;gap:10px;font-size:20px;font-weight:bold;color:#263238;min-width:240px}
+.logo-icon{width:38px;height:38px;border-radius:10px;background:#34495e;color:#fff;display:flex;align-items:center;justify-content:center;font-size:20px}
+.logo span{color:#3498db}
+.search-container{flex:1;max-width:550px;position:relative}
+#search{width:100%;height:40px;border:1px solid #d5dbe0;border-radius:20px;padding:0 45px 0 18px;font-size:14px;outline:none;background:#f7f9fa;transition:.2s}
+#search:focus{background:#fff;border-color:#3498db;box-shadow:0 0 0 3px rgba(52,152,219,.12)}
+#search-button{position:absolute;right:5px;top:5px;width:30px;height:30px;border:none;border-radius:50%;background:#3498db;color:#fff;cursor:pointer}
+.top-actions{margin-left:auto;display:flex;gap:8px}
+.top-button{width:38px;height:38px;border:1px solid #dce1e5;border-radius:9px;background:#fff;cursor:pointer;font-size:17px;transition:.2s}
+.top-button:hover{background:#3498db;color:#fff;border-color:#3498db}
+
+#sidebar{position:absolute;top:64px;left:0;bottom:0;width:290px;background:rgba(255,255,255,.98);z-index:900;box-shadow:2px 0 12px rgba(0,0,0,.1);overflow-y:auto;transition:.3s}
+.sidebar-header{padding:20px 20px 10px;font-size:18px;font-weight:bold;color:#263238}
+.sidebar-subtitle{padding:0 20px 15px;font-size:12px;color:#7f8c8d}
+.section{border-top:1px solid #edf0f2;padding:17px 20px}
+.section-title{font-size:11px;font-weight:bold;letter-spacing:1px;color:#7f8c8d;margin-bottom:12px}
+
+.layer-row{display:flex;align-items:center;gap:10px;padding:8px 0;cursor:pointer;font-size:14px;color:#34495e}
+.layer-row input{width:16px;height:16px;accent-color:#3498db;cursor:pointer}
+.sym{width:18px;height:14px;border-radius:3px;flex:none}
+.sym.line{height:4px;border-radius:2px}
+.sym.dot{width:12px;height:12px;border-radius:50%}
+
+.basemap-button{width:100%;padding:10px;margin-bottom:7px;border:1px solid #dfe4e7;border-radius:8px;background:#f8f9fa;cursor:pointer;text-align:left;color:#34495e;transition:.2s;font-size:14px}
+.basemap-button:hover{border-color:#3498db;background:#edf7fd}
+.basemap-button.active{background:#3498db;border-color:#3498db;color:#fff}
+
+.legend-item{display:flex;align-items:center;gap:10px;font-size:13px;margin:8px 0;color:#455a64}
+
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.stat{background:#f5f7f8;border-radius:8px;padding:10px;text-align:center}
+.stat-number{font-size:19px;font-weight:bold;color:#3498db}
+.stat-label{font-size:10px;color:#7f8c8d;margin-top:3px}
+
+#map{position:absolute;top:64px;left:290px;right:0;bottom:32px;z-index:1}
+#statusbar{position:absolute;left:290px;right:0;bottom:0;height:32px;background:rgba(255,255,255,.96);z-index:1000;display:flex;align-items:center;justify-content:space-between;padding:0 15px;font-size:11px;color:#607d8b;box-shadow:0 -2px 8px rgba(0,0,0,.08)}
+
+.map-tools{position:absolute;right:15px;top:80px;z-index:500;display:flex;flex-direction:column;gap:7px}
+.map-tool{width:40px;height:40px;border:none;border-radius:8px;background:#fff;box-shadow:0 2px 8px rgba(0,0,0,.2);cursor:pointer;font-size:17px;color:#455a64}
+.map-tool:hover{background:#3498db;color:#fff}
+
+/* popups */
+.pop-img{width:100%;max-width:240px;border-radius:6px;margin:6px 0;display:block}
+.pop-info{font-size:12px;color:#455a64}
+
+@media(max-width:800px){#sidebar{width:240px}#map,#statusbar{left:240px}.logo{min-width:auto}.logo-text{display:none}.search-container{margin-left:10px}}
+@media(max-width:600px){#sidebar{width:0;overflow:hidden}#map,#statusbar{left:0}.logo{display:none}.search-container{margin-left:0}}
+</style>
 </head>
 
-
 <body>
-
 <div id="app">
 
-
-    <!-- =====================================================
-         BARRE SUPÉRIEURE
-    ====================================================== -->
-
-    <header id="topbar">
-
-        <div class="logo">
-
-            <div class="logo-icon">
-                ◈
-            </div>
-
-            <div class="logo-text">
-                GEO<span>MAP</span>
-            </div>
-
-        </div>
-
-
-        <div class="search-container">
-
-            <input
-                type="text"
-                id="search"
-                placeholder="Rechercher un lieu..."
-            >
-
-            <button id="search-button">
-                🔍
-            </button>
-
-        </div>
-
-
-        <div class="top-actions">
-
-            <button
-                class="top-button"
-                title="Panneau"
-                onclick="toggleSidebar()">
-                ☰
-            </button>
-
-            <button
-                class="top-button"
-                title="Plein écran"
-                onclick="toggleFullscreen()">
-                ⛶
-            </button>
-
-        </div>
-
-    </header>
-
-
-    <!-- =====================================================
-         PANNEAU LATÉRAL
-    ====================================================== -->
-
-    <aside id="sidebar">
-
-        <div class="sidebar-header">
-            Cartographie
-        </div>
-
-        <div class="sidebar-subtitle">
-            Interface géographique interactive
-        </div>
-
-
-        <!-- COUCHES -->
-
-        <div class="section">
-
-            <div class="section-title">
-                COUCHES
-            </div>
-
-
-            <label class="layer-row">
-
-                <input
-                    type="checkbox"
-                    id="routesCheck"
-                    checked
-                >
-
-                <div class="layer-symbol"></div>
-
-                Routes
-
-            </label>
-
-
-            <label class="layer-row">
-
-                <input
-                    type="checkbox"
-                    id="pointsCheck"
-                    checked
-                >
-
-                <div class="layer-symbol point"></div>
-
-                Points d'intérêt
-
-            </label>
-
-
-            <label class="layer-row">
-
-                <input
-                    type="checkbox"
-                    id="zoneCheck"
-                    checked
-                >
-
-                <div class="layer-symbol area"></div>
-
-                Zone d'étude
-
-            </label>
-
-        </div>
-
-
-        <!-- FONDS -->
-
-        <div class="section">
-
-            <div class="section-title">
-                FOND CARTOGRAPHIQUE
-            </div>
-
-
-            <button
-                class="basemap-button active"
-                onclick="changeBase('standard', this)">
-                🗺️ Standard
-            </button>
-
-
-            <button
-                class="basemap-button"
-                onclick="changeBase('dark', this)">
-                🌙 Sombre
-            </button>
-
-
-            <button
-                class="basemap-button"
-                onclick="changeBase('satellite', this)">
-                🛰️ Satellite
-            </button>
-
-        </div>
-
-
-        <!-- LÉGENDE -->
-
-        <div class="section">
-
-            <div class="section-title">
-                LÉGENDE
-            </div>
-
-
-            <div class="legend-item">
-
-                <div class="legend-line"></div>
-
-                Route
-
-            </div>
-
-
-            <div class="legend-item">
-
-                <div class="legend-point"></div>
-
-                Point d'intérêt
-
-            </div>
-
-
-            <div class="legend-item">
-
-                <div class="legend-area"></div>
-
-                Zone d'étude
-
-            </div>
-
-        </div>
-
-
-        <!-- STATISTIQUES -->
-
-        <div class="section">
-
-            <div class="section-title">
-                INFORMATIONS
-            </div>
-
-
-            <div class="stats">
-
-                <div class="stat">
-
-                    <div class="stat-number">
-                        3
-                    </div>
-
-                    <div class="stat-label">
-                        COUCHES
-                    </div>
-
-                </div>
-
-
-                <div class="stat">
-
-                    <div class="stat-number">
-                        12
-                    </div>
-
-                    <div class="stat-label">
-                        OBJETS
-                    </div>
-
-                </div>
-
-            </div>
-
-        </div>
-
-    </aside>
-
-
-    <!-- =====================================================
-         CARTE
-    ====================================================== -->
-
-    <div id="map"></div>
-
-
-    <!-- =====================================================
-         OUTILS
-    ====================================================== -->
-
-    <div class="map-tools">
-
-        <button
-            class="map-tool"
-            title="Retour à la vue initiale"
-            onclick="resetView()">
-            🏠
-        </button>
-
-
-        <button
-            class="map-tool"
-            title="Ma position"
-            onclick="locateUser()">
-            📍
-        </button>
-
-
-        <button
-            class="map-tool"
-            title="Zoom avant"
-            onclick="map.zoomIn()">
-            +
-        </button>
-
-
-        <button
-            class="map-tool"
-            title="Zoom arrière"
-            onclick="map.zoomOut()">
-            −
-        </button>
-
+<header id="topbar">
+  <div class="logo"><div class="logo-icon">◈</div><div class="logo-text">GEO<span>MAP</span></div></div>
+  <div class="search-container">
+    <input type="text" id="search" placeholder="Rechercher un lieu...">
+    <button id="search-button">🔍</button>
+  </div>
+  <div class="top-actions">
+    <button class="top-button" title="Panneau" onclick="toggleSidebar()">☰</button>
+    <button class="top-button" title="Plein écran" onclick="toggleFullscreen()">⛶</button>
+  </div>
+</header>
+
+<aside id="sidebar">
+  <div class="sidebar-header">Campus IAV Hassan II</div>
+  <div class="sidebar-subtitle">Cartographie interactive</div>
+
+  <div class="section">
+    <div class="section-title">COUCHES</div>
+    <label class="layer-row"><input type="checkbox" id="batCheck" checked><div class="sym" style="background:#0076be"></div>Bâtiments</label>
+    <label class="layer-row"><input type="checkbox" id="iconsCheck" checked><div class="sym dot" style="background:#3498db"></div>Icônes des bâtiments</label>
+    <label class="layer-row"><input type="checkbox" id="routesCheck" checked><div class="sym line" style="background:#2D3942"></div>Routes</label>
+    <label class="layer-row"><input type="checkbox" id="grassCheck" checked><div class="sym" style="background:#8cba31"></div>Espaces verts</label>
+    <label class="layer-row"><input type="checkbox" id="wallCheck" checked><div class="sym line" style="background:#082522"></div>Clôture</label>
+    <label class="layer-row"><input type="checkbox" id="pointsCheck" checked><div class="sym dot" style="background:#e67e22"></div>Points d'intérêt</label>
+    <label class="layer-row"><input type="checkbox" id="vegCheck" checked><div class="sym dot" style="background:#2e8b3d"></div>Arbres et palmiers</label>
+  </div>
+
+  <div class="section">
+    <div class="section-title">FOND CARTOGRAPHIQUE</div>
+    <button class="basemap-button active" data-base="standard">🗺️ Standard</button>
+    <button class="basemap-button" data-base="dark">🌙 Sombre</button>
+    <button class="basemap-button" data-base="satellite">🛰️ Satellite</button>
+  </div>
+
+  <div class="section">
+    <div class="section-title">LÉGENDE (BÂTIMENTS)</div>
+    <div class="legend-item"><div class="sym" style="background:#003154"></div>Formation</div>
+    <div class="legend-item"><div class="sym" style="background:#0076be"></div>Laboratoires / TP</div>
+    <div class="legend-item"><div class="sym" style="background:#005c53"></div>Structures</div>
+    <div class="legend-item"><div class="sym" style="background:#2a2f10"></div>Amphithéâtres</div>
+    <div class="legend-item"><div class="sym" style="background:#193600"></div>Résidences</div>
+    <div class="legend-item"><div class="sym" style="background:#56bf00"></div>Restauration</div>
+    <div class="legend-item"><div class="sym" style="background:#8cba31"></div>Sport</div>
+    <div class="legend-item"><div class="sym" style="background:#aeb58e"></div>Classes / Bureaux</div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">INFORMATIONS</div>
+    <div class="stats">
+      <div class="stat"><div class="stat-number" id="statLayers">0</div><div class="stat-label">COUCHES</div></div>
+      <div class="stat"><div class="stat-number" id="statObjects">0</div><div class="stat-label">OBJETS</div></div>
     </div>
+  </div>
+</aside>
 
+<div id="map"></div>
 
-    <!-- =====================================================
-         BARRE INFÉRIEURE
-    ====================================================== -->
+<div class="map-tools">
+  <button class="map-tool" title="Vue initiale" onclick="resetView()">🏠</button>
+  <button class="map-tool" title="Ma position" onclick="locateUser()">📍</button>
+  <button class="map-tool" title="Zoom avant" onclick="map.zoomIn()">+</button>
+  <button class="map-tool" title="Zoom arrière" onclick="map.zoomOut()">−</button>
+</div>
 
-    <footer id="statusbar">
-
-        <span id="coordinates">
-            Coordonnées : —
-        </span>
-
-        <span>
-            © OpenStreetMap | GeoMap
-        </span>
-
-        <span>
-            Niveau de zoom : <b id="zoomLevel">12</b>
-        </span>
-
-    </footer>
-
+<footer id="statusbar">
+  <span id="coordinates">Coordonnées : —</span>
+  <span>© OpenStreetMap | GeoMap</span>
+  <span>Zoom : <b id="zoomLevel">17</b></span>
+</footer>
 
 </div>
 
-
 <!-- =========================================================
-     JAVASCRIPT
+     DONNÉES (voir les instructions : un fichier .js par couche)
+     Si un fichier est absent, la couche correspondante est
+     simplement vide, la carte continue de fonctionner.
 ========================================================= -->
+<script src="data/grass.js"></script>
+<script src="data/iav3D.js"></script>
+<script src="data/roads.js"></script>
+<script src="data/iav_points.js"></script>
 
 <script>
-
-
 /* =========================================================
    CONFIGURATION
 ========================================================= */
+const initialCenter = [33.9745, -6.8665];
+const initialZoom   = 17;
 
-const initialCenter = [31.63, -8.00];
-
-const initialZoom = 12;
-
+// Dossier des icônes PNG des points. Adapter si besoin.
+const ICONS_DIR = 'assets/icons/';
+// Taille d'affichage des icônes (px)
+const ICON_SIZE = [32, 32];
 
 /* =========================================================
-   CRÉATION DE LA CARTE
+   CARTE
 ========================================================= */
-
-const map = L.map('map', {
-
-    zoomControl: true,
-
-    attributionControl: true
-
-}).setView(
-    initialCenter,
-    initialZoom
-);
-
+const map = L.map('map', { zoomControl: false, maxZoom: 20 })
+    .setView(initialCenter, initialZoom);
 
 /* =========================================================
    FONDS CARTOGRAPHIQUES
 ========================================================= */
-
-const standard = L.tileLayer(
-
-    'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-
-    {
-        attribution:
-        '&copy; OpenStreetMap contributors',
-
-        maxZoom: 19
-    }
-
-).addTo(map);
-
-
-const dark = L.tileLayer(
-
-    'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
-
-    {
-        attribution:
-        '&copy; OpenStreetMap &copy; CARTO',
-
-        maxZoom: 20
-    }
-
-);
-
-
-const satellite = L.tileLayer(
-
-    'https://server.arcgisonline.com/ArcGIS/rest/services/' +
-    'World_Imagery/MapServer/tile/{z}/{y}/{x}',
-
-    {
-        attribution:
-        'Tiles &copy; Esri',
-
-        maxZoom: 19
-    }
-
-);
-
-
-/* =========================================================
-   COUCHES DE DÉMONSTRATION
-========================================================= */
-
-
-/* ROUTES */
-
-const routesLayer = L.layerGroup();
-
-
-const route1 = L.polyline(
-
-    [
-        [31.635, -8.015],
-        [31.630, -8.005],
-        [31.625, -7.995],
-        [31.620, -7.985]
-    ],
-
-    {
-        color: '#e74c3c',
-
-        weight: 5,
-
-        opacity: 0.9
-    }
-
-).bindPopup(
-    '<b>Route principale</b><br>Type : principale'
-);
-
-
-const route2 = L.polyline(
-
-    [
-        [31.640, -8.020],
-        [31.638, -8.005],
-        [31.635, -7.990]
-    ],
-
-    {
-        color: '#f39c12',
-
-        weight: 3,
-
-        opacity: 0.9
-    }
-
-).bindPopup(
-    '<b>Route secondaire</b><br>Type : secondaire'
-);
-
-
-route1.addTo(routesLayer);
-
-route2.addTo(routesLayer);
-
-routesLayer.addTo(map);
-
-
-/* =========================================================
-   POINTS
-========================================================= */
-
-const pointsLayer = L.layerGroup();
-
-
-const point1 = L.circleMarker(
-
-    [31.630, -8.000],
-
-    {
-        radius: 9,
-
-        fillColor: '#3498db',
-
-        color: '#ffffff',
-
-        weight: 3,
-
-        fillOpacity: 1
-    }
-
-).bindPopup(
-    '<b>Point d'intérêt</b><br>' +
-    'Coordonnées : 31.630, -8.000'
-);
-
-
-const point2 = L.circleMarker(
-
-    [31.640, -8.010],
-
-    {
-        radius: 9,
-
-        fillColor: '#9b59b6',
-
-        color: '#ffffff',
-
-        weight: 3,
-
-        fillOpacity: 1
-    }
-
-).bindPopup(
-    '<b>Point topographique</b><br>' +
-    'Type : point de contrôle'
-);
-
-
-const point3 = L.circleMarker(
-
-    [31.620, -7.995],
-
-    {
-        radius: 9,
-
-        fillColor: '#1abc9c',
-
-        color: '#ffffff',
-
-        weight: 3,
-
-        fillOpacity: 1
-    }
-
-).bindPopup(
-    '<b>Point remarquable</b>'
-);
-
-
-point1.addTo(pointsLayer);
-
-point2.addTo(pointsLayer);
-
-point3.addTo(pointsLayer);
-
-pointsLayer.addTo(map);
-
-
-/* =========================================================
-   ZONE D'ÉTUDE
-========================================================= */
-
-const zoneLayer = L.layerGroup();
-
-
-const studyArea = L.polygon(
-
-    [
-        [31.645, -8.025],
-        [31.645, -7.980],
-        [31.615, -7.980],
-        [31.615, -8.025]
-    ],
-
-    {
-        color: '#2ecc71',
-
-        weight: 2,
-
-        fillColor: '#2ecc71',
-
-        fillOpacity: 0.10
-    }
-
-).bindPopup(
-    '<b>Zone d’étude</b><br>' +
-    'Zone cartographique'
-);
-
-
-studyArea.addTo(zoneLayer);
-
-zoneLayer.addTo(map);
-
-
-/* =========================================================
-   GESTION DES COUCHES
-========================================================= */
-
-document
-    .getElementById('routesCheck')
-    .addEventListener('change', function () {
-
-        if (this.checked) {
-
-            map.addLayer(routesLayer);
-
-        } else {
-
-            map.removeLayer(routesLayer);
-
-        }
-
-    });
-
-
-document
-    .getElementById('pointsCheck')
-    .addEventListener('change', function () {
-
-        if (this.checked) {
-
-            map.addLayer(pointsLayer);
-
-        } else {
-
-            map.removeLayer(pointsLayer);
-
-        }
-
-    });
-
-
-document
-    .getElementById('zoneCheck')
-    .addEventListener('change', function () {
-
-        if (this.checked) {
-
-            map.addLayer(zoneLayer);
-
-        } else {
-
-            map.removeLayer(zoneLayer);
-
-        }
-
-    });
-
-
-/* =========================================================
-   CHANGEMENT DE FOND
-========================================================= */
+const baseLayers = {
+    standard: L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+        { attribution: '&copy; OpenStreetMap contributors', maxZoom: 19 }),
+    dark: L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
+        { attribution: '&copy; OpenStreetMap &copy; CARTO', maxZoom: 20 }),
+    satellite: L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+        { attribution: 'Tiles &copy; Esri', maxZoom: 19 })
+};
+
+let currentBase = 'standard';
+baseLayers.standard.addTo(map);
 
 function changeBase(type, button) {
-
-
-    map.removeLayer(standard);
-
-    map.removeLayer(dark);
-
-    map.removeLayer(satellite);
-
-
-    if (type === 'standard') {
-
-        standard.addTo(map);
-
-    }
-
-
-    if (type === 'dark') {
-
-        dark.addTo(map);
-
-    }
-
-
-    if (type === 'satellite') {
-
-        satellite.addTo(map);
-
-    }
-
-
-    document
-        .querySelectorAll('.basemap-button')
-        .forEach(function(btn) {
-
-            btn.classList.remove('active');
-
-        });
-
-
-    button.classList.add('active');
-
+    if (!baseLayers[type] || type === currentBase) return;
+    map.removeLayer(baseLayers[currentBase]);
+    baseLayers[type].addTo(map);
+    baseLayers[type].bringToBack();
+    currentBase = type;
+    document.querySelectorAll('.basemap-button').forEach(b => b.classList.remove('active'));
+    if (button) button.classList.add('active');
 }
 
+document.querySelectorAll('.basemap-button').forEach(function (btn) {
+    btn.addEventListener('click', function () { changeBase(btn.dataset.base, btn); });
+});
 
 /* =========================================================
-   RETOUR À LA VUE INITIALE
+   OUTILS
 ========================================================= */
+// Corrige les couleurs sans "#" (ex: "aeb58e")
+function fixColor(c, fallback) {
+    if (!c) return fallback;
+    return /^[0-9a-fA-F]{6}$/.test(c) ? '#' + c : c;
+}
+
+// Corrige les chemins d'images : antislash, "./", URL absolues
+function imgPath(p, baseDir) {
+    if (!p) return null;
+    p = String(p).replace(/\\/g, '/');
+    if (/^https?:\/\//i.test(p)) return p;
+    p = p.replace(/^\.?\//, '');
+    if (baseDir && p.indexOf('/') === -1) p = baseDir + p;
+    return p;
+}
+
+function esc(s) {
+    return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+function popupHtml(props, baseDir) {
+    let html = '';
+    if (props.name) html += '<b>' + esc(props.name) + '</b>';
+    const img = imgPath(props.image || props.photo || props.img || props.jpg, baseDir);
+    if (img) html += '<img class="pop-img" src="' + img + '" alt="" onerror="this.style.display=\'none\'">';
+    if (props.info) {
+        if (/^https?:\/\//i.test(props.info))
+            html += '<div class="pop-info"><a href="' + props.info + '" target="_blank" rel="noopener">Site web</a></div>';
+        else
+            html += '<div class="pop-info">' + props.info + '</div>';   // contient du HTML (<b>, <i>)
+    }
+    return html || null;
+}
+
+const emptyFC = { type: 'FeatureCollection', features: [] };
+const dataOf = function (name) { return (typeof window[name] !== 'undefined') ? window[name] : emptyFC; };
+
+/* =========================================================
+   COUCHES
+========================================================= */
+
+/* --- Espaces verts (grass) --- */
+const grassData = (typeof GRASS_DATA !== 'undefined') ? GRASS_DATA : emptyFC;
+const grassLayer = L.geoJSON(grassData, {
+    style: { color: '#4f8a1f', weight: 1, fillColor: '#8cba31', fillOpacity: 0.35 },
+    interactive: false
+});
+
+/* --- Bâtiments (iav3D) : séparer clôture et bâtiments --- */
+const iavData = (typeof IAV3D_DATA !== 'undefined') ? IAV3D_DATA : emptyFC;
+const wallFeatures = iavData.features.filter(f => f.properties && f.properties.name === 'wall');
+const bldFeatures  = iavData.features.filter(f => !(f.properties && f.properties.name === 'wall'));
+
+const wallLayer = L.geoJSON({ type: 'FeatureCollection', features: wallFeatures }, {
+    style: { color: '#082522', weight: 1, fillColor: '#082522', fillOpacity: 0.85 },
+    interactive: false
+});
+
+const batLayer = L.geoJSON({ type: 'FeatureCollection', features: bldFeatures }, {
+    style: function (f) {
+        const c = fixColor(f.properties.color, '#c78b1f');
+        return { color: '#ffffff', weight: 1, fillColor: c, fillOpacity: 0.85 };
+    },
+    onEachFeature: function (f, layer) {
+        const html = popupHtml(f.properties);
+        if (html) layer.bindPopup(html, { maxWidth: 260 });
+        if (f.properties.name) layer.bindTooltip(f.properties.name, { sticky: true });
+
+        const base = fixColor(f.properties.color, '#c78b1f');
+        const hover = fixColor(f.properties.hover_color, '#53faff');
+        layer.on('mouseover', function () { layer.setStyle({ fillColor: hover, fillOpacity: 1 }); });
+        layer.on('mouseout',  function () { layer.setStyle({ fillColor: base, fillOpacity: 0.85 }); });
+    }
+});
+
+/* --- Routes --- */
+const roadsData = (typeof ROADS_DATA !== 'undefined') ? ROADS_DATA : emptyFC;
+const routesLayer = L.geoJSON(roadsData, {
+    style: function (f) {
+        return {
+            color: f.properties.color || '#506475',
+            weight: f.properties.width || 3,
+            opacity: 0.95,
+            lineCap: 'round'
+        };
+    },
+    onEachFeature: function (f, layer) {
+        if (f.properties.category) layer.bindTooltip(f.properties.category, { sticky: true });
+    }
+});
+
+/* --- Points (iav_points) : POI + végétation --- */
+// "basket" dans les données => fichier basketball.png
+const ICON_ALIAS = { basket: 'basketball' };
+const VEG_NAMES  = ['tree', 'grass', 'palmier'];
+
+// Déduction de l'icône selon le champ "grouping"
+const GROUP_ICON = {
+    room: 'residence', departments: 'department', bde: 'students', food: 'restaurant',
+    cda: 'library', study: 'study', health: 'health', game: 'recreation', press: 'shop',
+    amphitheater: 'amphitheatre', admin: 'administration', service: 'institution',
+    sport: 'sport', cap: 'students', onssa: 'institution', prayer: 'mosque', biblio: 'library'
+};
+// Exceptions par nom (prioritaires sur le grouping)
+const POINT_NAME_RULES = [
+    [/equest|[eé]quitation/i, 'horse'],
+    [/^club el harka/i,       'coffee'],
+    [/buvette/i,              'coffee'],
+    [/clinique/i,             'clinic'],
+    [/salle de sport/i,       'sport'],
+    [/foyer/i,                'students'],
+    [/[eé]picerie|epicerie/i, 'shop'],
+    [/m[eé]decin/i,           'health'],
+    [/mosqu/i,                'mosque']
+];
+
+function pointIconName(p) {
+    if (p.icon_name) return ICON_ALIAS[p.icon_name] || p.icon_name;
+    const n = (p.name || '').trim();
+    if (!n) return null;
+    if (VEG_NAMES.indexOf(n.toLowerCase()) !== -1) return n.toLowerCase();
+    for (let i = 0; i < POINT_NAME_RULES.length; i++) {
+        if (POINT_NAME_RULES[i][0].test(n)) return POINT_NAME_RULES[i][1];
+    }
+    return GROUP_ICON[p.grouping] || null;
+}
+
+function makeIcon(file, size) {
+    return L.icon({
+        iconUrl: ICONS_DIR + file + '.png',
+        iconSize: size,
+        iconAnchor: [size[0] / 2, size[1] / 2],
+        popupAnchor: [0, -size[1] / 2]
+    });
+}
+
+function pointPopup(p) {
+    let h = '<b>' + esc((p.name || '').trim()) + '</b>';
+    if (p.department) h += '<div class="pop-info">' + esc(String(p.department).trim()) + '</div>';
+    const img = imgPath(p.image);
+    if (img) h += '<img class="pop-img" src="' + img + '" alt="" onerror="this.style.display=\'none\'">';
+    if (p.brochure) h += '<div class="pop-info">' + p.brochure + '</div>';          // contient un <a>
+    if (p.mail) h += '<div class="pop-info"><a href="mailto:' + esc(p.mail) + '">' + esc(p.mail) + '</a></div>';
+    return h;
+}
+
+const poiLayer = L.layerGroup();   // points d'intérêt
+const vegLayer = L.layerGroup();   // arbres, palmiers, pelouses
+const POI_SIZE = [30, 30], VEG_SIZE = [22, 22];
+
+pointsData.features.forEach(function (f) {
+    if (!f.geometry || f.geometry.type !== 'Point') return;
+    const p = f.properties || {};
+    const icon = pointIconName(p);
+    if (!icon) return;                                   // points sans nom ni icône : ignorés
+    const ll = [f.geometry.coordinates[1], f.geometry.coordinates[0]];
+    const isVeg = VEG_NAMES.indexOf((p.name || '').trim().toLowerCase()) !== -1;
+
+    if (isVeg) {
+        L.marker(ll, { icon: makeIcon(icon, VEG_SIZE), interactive: false, keyboard: false }).addTo(vegLayer);
+    } else {
+        const m = L.marker(ll, { icon: makeIcon(icon, POI_SIZE), keyboard: false });
+        const nm = (p.name || '').trim();
+        if (nm) m.bindTooltip(nm, { direction: 'top', offset: [0, -POI_SIZE[1] / 2] });
+        m.bindPopup(pointPopup(p), { maxWidth: 260 });
+        m.addTo(poiLayer);
+    }
+});
+
+// Seuils de zoom pour éviter l'encombrement
+const POI_MIN_ZOOM = 16;
+const VEG_MIN_ZOOM = 18;
+function updatePointLayers() {
+    const z = map.getZoom();
+    const wantPoi = document.getElementById('pointsCheck').checked && z >= POI_MIN_ZOOM;
+    const wantVeg = document.getElementById('vegCheck').checked && z >= VEG_MIN_ZOOM;
+    if (wantPoi && !map.hasLayer(poiLayer)) poiLayer.addTo(map);
+    if (!wantPoi && map.hasLayer(poiLayer)) map.removeLayer(poiLayer);
+    if (wantVeg && !map.hasLayer(vegLayer)) vegLayer.addTo(map);
+    if (!wantVeg && map.hasLayer(vegLayer)) map.removeLayer(vegLayer);
+}
+document.getElementById('pointsCheck').addEventListener('change', updatePointLayers);
+document.getElementById('vegCheck').addEventListener('change', updatePointLayers);
+map.on('zoomend', updatePointLayers);
+
+// Repli : sans fichier de points, on garde les icônes automatiques sur les bâtiments
+const useAuto = pointsData.features.length === 0;
+
+/* --- Icônes automatiques sur les bâtiments --- */
+// Règles par mots-clés dans le nom (la première qui correspond gagne)
+const ICON_BY_NAME = [
+    [/terrain.*basket|basketball/i,        'basketball'],
+    [/equitation|équitation|harka|equestre|équestre/i, 'horse'],
+    [/terrain|volley|hand|foot|tenis|tennis/i, 'sport'],
+    [/piscine/i,                            'recreation'],
+    [/buvette/i,                            'coffee'],
+    [/restaurant|tickets/i,                 'restaurant'],
+    [/epicerie|épicerie/i,                  'shop'],
+    [/documentation/i,                      'library'],
+    [/clinique|chu|hospitalier|autopsie/i,  'clinic'],
+    [/onssa/i,                              'institution'],
+    [/garage|parking/i,                     'parking'],
+    [/administration|direction|economat|économat|régie|regie|stages/i, 'administration'],
+    [/amphi/i,                              'amphitheatre'],
+    [/conf[eé]rence|capacity|sallon|salon/i,'students'],
+    [/r[eé]sidence|logement/i,              'residence'],
+    [/salle|lab|physiologie|histologie|parasito|anatomie|pharmacie|photozologie|microbo|tp/i, 'study'],
+    [/d[eé]partement|formation|g[eé]nie|ing[eé]nierie|industries|halieutique|g[eé]omatiques|reproduction/i, 'department']
+];
+// Repli selon la propriété "group"
+const ICON_BY_GROUP = {
+    formation: 'department', lab: 'study', class: 'study', bloc: 'clinic',
+    desk: 'administration', amphi: 'amphitheatre', residence: 'residence',
+    food: 'restaurant', sport: 'sport'
+};
+// Noms ignorés (pas d'icône)
+const ICON_SKIP = /^(wall|séparateur|allée|bassin|carrefour|aviculture)$/i;
+
+function autoIconFor(p) {
+    const name = (p.name || '').trim();
+    if (ICON_SKIP.test(name)) return null;
+    for (let i = 0; i < ICON_BY_NAME.length; i++) {
+        if (ICON_BY_NAME[i][0].test(name)) return ICON_BY_NAME[i][1];
+    }
+    return ICON_BY_GROUP[p.group] || null;
+}
+
+const AUTO_ICON_SIZE = [28, 28];
+const autoIconLayer = L.layerGroup();
+batLayer.eachLayer(function (poly) {
+    const p = poly.feature.properties || {};
+    const file = autoIconFor(p);
+    if (!file) return;
+    const icon = L.icon({
+        iconUrl: ICONS_DIR + file + '.png',
+        iconSize: AUTO_ICON_SIZE,
+        iconAnchor: [AUTO_ICON_SIZE[0] / 2, AUTO_ICON_SIZE[1] / 2]
+    });
+    const m = L.marker(poly.getBounds().getCenter(), { icon: icon, keyboard: false });
+    if (p.name) m.bindTooltip(p.name, { direction: 'top', offset: [0, -14] });
+    m.on('click', function () { poly.openPopup(); });
+    m.addTo(autoIconLayer);
+});
+
+// Les icônes n'apparaissent qu'à partir du zoom 17 pour éviter l'encombrement
+const ICON_MIN_ZOOM = 17;
+function updateAutoIcons() {
+    const wanted = useAuto && document.getElementById('iconsCheck').checked && map.getZoom() >= ICON_MIN_ZOOM;
+    if (wanted && !map.hasLayer(autoIconLayer)) autoIconLayer.addTo(map);
+    if (!wanted && map.hasLayer(autoIconLayer)) map.removeLayer(autoIconLayer);
+}
+document.getElementById('iconsCheck').addEventListener('change', updateAutoIcons);
+map.on('zoomend', updateAutoIcons);
+
+/* Ordre d'affichage : bas -> haut */
+[grassLayer, wallLayer, routesLayer, batLayer].forEach(l => l.addTo(map));
+
+/* Statistiques */
+document.getElementById('statLayers').textContent = 5;
+document.getElementById('statObjects').textContent =
+    grassData.features.length + iavData.features.filter(f => f.geometry).length +
+    roadsData.features.length + pointsData.features.length;
+
+/* Cadrage sur les bâtiments s'ils sont chargés */
+(function () {
+    try {
+        const b = batLayer.getBounds();
+        if (b.isValid()) map.fitBounds(b.pad(0.1));
+    } catch (e) {}
+    document.getElementById('zoomLevel').textContent = map.getZoom();
+    if (!useAuto) document.getElementById('iconsCheck').closest('label').style.display = 'none';
+    updateAutoIcons();
+    updatePointLayers();
+})();
+
+/* =========================================================
+   CASES À COCHER
+========================================================= */
+function bindCheck(id, layer) {
+    document.getElementById(id).addEventListener('change', function () {
+        if (this.checked) { layer.addTo(map); } else { map.removeLayer(layer); }
+    });
+}
+bindCheck('batCheck', batLayer);
+bindCheck('routesCheck', routesLayer);
+bindCheck('grassCheck', grassLayer);
+bindCheck('wallCheck', wallLayer);
+
+/* =========================================================
+   VUE / GÉOLOCALISATION
+========================================================= */
+let homeBounds = null;
+try { const b = batLayer.getBounds(); if (b.isValid()) homeBounds = b.pad(0.1); } catch (e) {}
 
 function resetView() {
-
-    map.flyTo(
-
-        initialCenter,
-
-        initialZoom,
-
-        {
-            duration: 1
-        }
-
-    );
-
+    if (homeBounds) map.flyToBounds(homeBounds, { duration: 1 });
+    else map.flyTo(initialCenter, initialZoom, { duration: 1 });
 }
-
-
-/* =========================================================
-   GÉOLOCALISATION
-========================================================= */
 
 function locateUser() {
-
-
-    if (!navigator.geolocation) {
-
-        alert(
-            "La géolocalisation n'est pas disponible."
-        );
-
-        return;
-
-    }
-
-
-    navigator.geolocation.getCurrentPosition(
-
-        function(position) {
-
-
-            const lat =
-                position.coords.latitude;
-
-
-            const lon =
-                position.coords.longitude;
-
-
-            map.flyTo(
-
-                [lat, lon],
-
-                16,
-
-                {
-                    duration: 1
-                }
-
-            );
-
-
-            L.marker([lat, lon])
-
-                .addTo(map)
-
-                .bindPopup(
-                    '<b>Votre position</b><br>' +
-                    lat.toFixed(6) +
-                    ', ' +
-                    lon.toFixed(6)
-                )
-
-                .openPopup();
-
-        },
-
-
-        function() {
-
-            alert(
-                "Impossible d'obtenir votre position."
-            );
-
-        }
-
-    );
-
+    if (!navigator.geolocation) { alert("La géolocalisation n'est pas disponible."); return; }
+    navigator.geolocation.getCurrentPosition(function (pos) {
+        const lat = pos.coords.latitude, lon = pos.coords.longitude;
+        map.flyTo([lat, lon], 16, { duration: 1 });
+        L.marker([lat, lon]).addTo(map)
+            .bindPopup('<b>Votre position</b><br>' + lat.toFixed(6) + ', ' + lon.toFixed(6)).openPopup();
+    }, function () { alert("Impossible d'obtenir votre position."); });
 }
 
-
-/* =========================================================
-   COORDONNÉES DE LA SOURIS
-========================================================= */
-
-map.on(
-
-    'mousemove',
-
-    function(e) {
-
-        document
-            .getElementById('coordinates')
-            .innerHTML =
-            'Coordonnées : ' +
-            e.latlng.lat.toFixed(5) +
-            ' , ' +
-            e.latlng.lng.toFixed(5);
-
-    }
-
-);
-
-
-/* =========================================================
-   NIVEAU DE ZOOM
-========================================================= */
-
-map.on(
-
-    'zoomend',
-
-    function() {
-
-        document
-            .getElementById('zoomLevel')
-            .innerText =
-            map.getZoom();
-
-    }
-
-);
-
+map.on('mousemove', function (e) {
+    document.getElementById('coordinates').textContent =
+        'Coordonnées : ' + e.latlng.lat.toFixed(5) + ' , ' + e.latlng.lng.toFixed(5);
+});
+map.on('zoomend', function () {
+    document.getElementById('zoomLevel').textContent = map.getZoom();
+});
 
 /* =========================================================
    RECHERCHE
+   1) cherche d'abord dans les noms des bâtiments
+   2) sinon Nominatim
 ========================================================= */
-
 async function searchLocation() {
+    const query = document.getElementById('search').value.trim();
+    if (!query) return;
+    const q = query.toLowerCase();
 
-
-    const query =
-        document
-            .getElementById('search')
-            .value
-            .trim();
-
-
-    if (!query) {
-
+    let found = null;
+    batLayer.eachLayer(function (l) {
+        const n = (l.feature.properties.name || '').toLowerCase();
+        if (!found && n.indexOf(q) !== -1) found = l;
+    });
+    if (found) {
+        map.flyToBounds(found.getBounds().pad(1.5), { duration: 1 });
+        found.openPopup();
         return;
-
     }
 
+    let foundPoi = null;
+    poiLayer.eachLayer(function (m) {
+        const t = m.getTooltip();
+        const n = t ? String(t.getContent()).toLowerCase() : '';
+        if (!foundPoi && n.indexOf(q) !== -1) foundPoi = m;
+    });
+    if (foundPoi) {
+        map.flyTo(foundPoi.getLatLng(), 19, { duration: 1 });
+        setTimeout(function () { updatePointLayers(); foundPoi.openPopup(); }, 1100);
+        return;
+    }
 
     try {
-
-
-        const url =
-            'https://nominatim.openstreetmap.org/search' +
-            '?format=json' +
-            '&limit=1' +
-            '&q=' +
-            encodeURIComponent(query);
-
-
-        const response =
-            await fetch(url);
-
-
-        const data =
-            await response.json();
-
-
-        if (data.length === 0) {
-
-            alert(
-                'Aucun lieu trouvé.'
-            );
-
-            return;
-
-        }
-
-
-        const lat =
-            parseFloat(data[0].lat);
-
-
-        const lon =
-            parseFloat(data[0].lon);
-
-
-        map.flyTo(
-
-            [lat, lon],
-
-            15,
-
-            {
-                duration: 1.5
-            }
-
-        );
-
-
-        L.marker([lat, lon])
-
-            .addTo(map)
-
-            .bindPopup(
-                '<b>' +
-                data[0].display_name +
-                '</b>'
-            )
-
-            .openPopup();
-
-
+        const url = 'https://nominatim.openstreetmap.org/search?format=json&limit=1&q=' + encodeURIComponent(query);
+        const response = await fetch(url);
+        const data = await response.json();
+        if (data.length === 0) { alert('Aucun lieu trouvé.'); return; }
+        const lat = parseFloat(data[0].lat), lon = parseFloat(data[0].lon);
+        map.flyTo([lat, lon], 15, { duration: 1.5 });
+        L.marker([lat, lon]).addTo(map).bindPopup('<b>' + esc(data[0].display_name) + '</b>').openPopup();
     } catch (error) {
-
-
-        alert(
-            'Erreur lors de la recherche.'
-        );
-
+        alert('Erreur lors de la recherche.');
     }
-
 }
-
-
-document
-    .getElementById('search-button')
-    .addEventListener(
-        'click',
-        searchLocation
-    );
-
-
-document
-    .getElementById('search')
-    .addEventListener(
-        'keydown',
-        function(event) {
-
-            if (event.key === 'Enter') {
-
-                searchLocation();
-
-            }
-
-        }
-    );
-
+document.getElementById('search-button').addEventListener('click', searchLocation);
+document.getElementById('search').addEventListener('keydown', function (e) {
+    if (e.key === 'Enter') searchLocation();
+});
 
 /* =========================================================
-   PANNEAU LATÉRAL
+   PANNEAU / PLEIN ÉCRAN
 ========================================================= */
-
 function toggleSidebar() {
-
-
-    const sidebar =
-        document.getElementById('sidebar');
-
-
-    const mapElement =
-        document.getElementById('map');
-
-
-    const statusbar =
-        document.getElementById('statusbar');
-
-
-    if (sidebar.style.width === '0px') {
-
-
-        sidebar.style.width = '290px';
-
-        mapElement.style.left = '290px';
-
-        statusbar.style.left = '290px';
-
-
-    } else {
-
-
-        sidebar.style.width = '0px';
-
-        mapElement.style.left = '0px';
-
-        statusbar.style.left = '0px';
-
-    }
-
-
-    setTimeout(
-
-        function() {
-
-            map.invalidateSize();
-
-        },
-
-        300
-
-    );
-
+    const sidebar = document.getElementById('sidebar');
+    const mapEl = document.getElementById('map');
+    const status = document.getElementById('statusbar');
+    const open = sidebar.style.width !== '0px';
+    const w = open ? '0px' : '290px';
+    sidebar.style.width = w;
+    mapEl.style.left = w;
+    status.style.left = w;
+    setTimeout(function () { map.invalidateSize(); }, 300);
 }
-
-
-/* =========================================================
-   MODE PLEIN ÉCRAN
-========================================================= */
 
 function toggleFullscreen() {
-
-
-    if (!document.fullscreenElement) {
-
-        document
-            .documentElement
-            .requestFullscreen();
-
-    } else {
-
-        document.exitFullscreen();
-
-    }
-
+    if (!document.fullscreenElement) document.documentElement.requestFullscreen();
+    else document.exitFullscreen();
 }
-
-
 </script>
-
-
 </body>
-
 </html>
